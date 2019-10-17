@@ -1,10 +1,9 @@
 
-
-
-A = A,B | C | a;
-
-
-B = b,A;
-C = c;
-C = CC;
-
+S = NP, VP;
+VP = VP, PP | V, NP | e;
+PP = P,NP;
+NP = Det,N|s;
+V = e;
+P = w;
+N = F|f;
+Det = a;
