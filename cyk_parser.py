@@ -1,11 +1,13 @@
 from grammar import Grammar
 from invalid_symbol_error import InvalidSymbolError
+from production_rule import ProductionRule
 
 class CYKParser():
 
     def __init__(self, grammar):
         assert type(grammar) is Grammar, "invalid grammar passed to CYKParser, not of type Grammar"
         self._grammar = grammar
+
 
     def get_grammar(self):
         return self._grammar
@@ -30,9 +32,10 @@ class CYKParser():
         parse_table = [[{} for s in range(len(string) - l)] for l in range(len(string))]
 
         for i, char in enumerate(string):
-            # change query production rules by body to get terminal production rules?
-            for production_rule in self.get_grammar().query_production_rules_by_body([char]): #BAD BRO
-                parse_table[0][i][production_rule] = True
+            for production_rule in self.get_grammar().get_production_rules():
+                for body in production_rule.get_bodys():
+                    if len(body) == 1 and body[0] == char:
+                        parse_table[0][i][production_rule] = True
 
         for l in range(2, len(string)+1):
             for s in range(0, len(string)-l+1):
@@ -62,3 +65,51 @@ class CYKParser():
         return
 
 
+    def parse_grammar(self, filepath):
+        """
+        Parses grammar from EBNF form to a Grammar object
+        :param filepath:
+        :return Grammar object:
+        """
+
+        # assert that its actually a filepath !!!
+
+        # g = Grammar()
+
+        production_rules = {}
+        bodys = {}
+
+        with open(filepath) as file:
+            for line in file:
+                if line != "\n":
+                    line = line.replace(" ", "").replace(";", "").strip("\n").split("=")
+                    var_bodys = line[1].replace(";", "").split("|")
+                    if line[0] != "":
+                        production_rules[line[0]] = ProductionRule(line[0])
+                        bodys[line[0]] = [*bodys.get(line[0], []), *var_bodys]
+
+
+        # build bodys
+        for variable in bodys:
+            print("----")
+            for body in bodys[variable]:
+                body = body.split(",")
+                for pr in production_rules:
+                    for i, b in enumerate(body):
+                        if b == pr:
+                            body[i] = production_rules[pr]
+                    production_rules[pr].add_bodys(body)
+
+
+
+                # convert
+
+
+
+
+        for k in production_rules:
+            print(production_rules[k].get_variable())
+            print(production_rules[k].get_bodys())
+            print(len(production_rules[k].get_bodys()))
+            print("--")
+        return

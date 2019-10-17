@@ -12,8 +12,3 @@ class Grammar():
 
     def get_start(self):
         return self._start
-
-    def query_production_rules_by_body(self, query):
-        return [production_rule  for production_rule in self.get_production_rules() for i, body in enumerate(production_rule.get_bodys()) if body == query]
-
-

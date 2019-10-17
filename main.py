@@ -140,6 +140,9 @@ def main():
 
     cyk_parser.parse(string)
 
+    cyk_parser.parse_grammar("hello.txt")
+
+
     return
 
 if __name__ == '__main__':
