@@ -14,6 +14,16 @@ class CYKParser():
         """
         assert type(string) is str, "invalid string passed to parse, not of type string"
 
+        # accounting for epsilon
+        if string == "":
+            parse_table = [[{}]]
+            # check if start contains epsilon
+            for production_rule in self._grammar:
+                if production_rule[0] == 'S' and production_rule[1][0] == "\\":
+                    parse_table = [[{"S": ""}]]
+            self.__print_parse_table(parse_table, string)
+            return True
+
         parse_table = self.__generate_parse_table(string)
 
         self.__print_parse_table(parse_table, string)
@@ -42,7 +52,9 @@ class CYKParser():
                 if len(production_rule[1]) == 1 and production_rule[1][0] == char:
                     parse_table[0][i][production_rule[0]] = (1, production_rule, i, 1)
 
+
         if any(map(lambda x : len(x) == 0, parse_table[0])):
+            print(list(map(lambda x : (x, len(x) == 0), parse_table[0])))
             raise InvalidSymbolError("ERROR_INVALID_SYMBOL")
 
         # length of substring
@@ -51,12 +63,14 @@ class CYKParser():
             for s in range(0, len(string)-l+1):
                 # length of left division
                 for p in range(0, l-1):
+                    # a -> b c
                     for production_rule in self._grammar:
                         if len(production_rule[1]) == 2:
                             b = parse_table[p][s].get(production_rule[1][0], None)
                             c = parse_table[l - p - 2][s + p + 1].get(production_rule[1][1], None)
                             if not b is None and not c is None:
                                 parse_table[l - 1][s][production_rule[0]] = (p, production_rule, s, l)
+
         return parse_table
 
     def __print_left_derivation(self, table, alpha):
@@ -88,7 +102,10 @@ class CYKParser():
         # prod is R -> terminal, replace with terminal
         if l == 1:
             terminal = prod[1][1][0]
-            alpha[index] = terminal
+            if terminal == "\\":
+                alpha.pop(index)
+            else:
+                alpha[index] = terminal
         else:
             # reduce Ra -> Rb, Rc
             left_cell = table[p][s][prod[1][1][0]]
@@ -105,41 +122,44 @@ class CYKParser():
 
     def __print_parse_table(self, table, string):
         """
-        Prints CYK parse table to standard out. Cells contain Variable/s.
+        Prints CYK parse table to output.txt. Cells contain Variable/s.
 
         :param table:
         :param string:
         :return:
         """
+        with open("output.txt", 'w') as f:
 
-        table = table[::-1]
-        for i in range(0, len(table)):
-            for j in range(0, len(table[i])):
-                print('{} | '.format((repr([k for k in table[i][j].keys()])).center(40)), end = " ")
+            table = table[::-1]
+            for i in range(0, len(table)):
+                for j in range(0, len(table[i])):
+                    print('{} | '.format((repr([k for k in table[i][j].keys()])).center(40)), file = f, end = " ")
+                print('\n', '=' * 44 * len(table[i]), file = f) if i == len(table) - 1 else print('\n', '-' * 44 * len(table[i]), file = f)
 
-            print('\n', '=' * 43 * len(table[i])) if i == len(table) - 1 else print('\n', '-' * 43 * len(table[i]))
-
-        for char in string:
-            print('{}|| '.format(char.center(40)), end = " ")
-        print()
+            for char in string:
+                print('{}|| '.format(char.center(40)), end = " ", file = f)
+            print(file = f)
         return
-
 
     def __parse_grammar(self, filepath):
         """
-        Parses grammar from EBNF form
+        Parses grammar in Chomsky Normal Form from specified input file.
 
-        :param filepath: file in grammar
+        Example:
+
+
+
+        :param filepath: (string) file in grammar
         :exception FileNotFoundError:
-        :return Grammar object:
+        :return grammar: (list) array of production rules
         """
         production_rules = []
         with open(filepath) as file:
 
             for line in file:
-                line = line.replace(" ", "").replace(";", "").replace("\n", "").split("=")
+                line = line.replace(" ", "").replace("\n", "").split("->")
 
                 if len(line) == 2:
                     production_rules.extend([(line[0], tuple(body.split(","))) for body in line[1].split("|")])
-
         return production_rules
+

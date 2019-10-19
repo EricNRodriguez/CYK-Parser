@@ -1,4 +1,4 @@
-b aa
+while(
 
-bw
-a
+x>2)dolet y=22
+;;
