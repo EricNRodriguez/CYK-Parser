@@ -1,4 +1,1 @@
-while(
-
-x>2)dolet y=22
-;;
+while(x>3)dowhile(y+2)doletx=2;;;

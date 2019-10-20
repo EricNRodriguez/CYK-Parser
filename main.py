@@ -9,7 +9,7 @@ def main():
         quit()
 
     try:
-        string = open(argv[2]).read().replace('\n', '').replace(" ", "")
+        string = open(argv[2]).read()
     except FileNotFoundError as e:
         print("Invalid file path for string, does not exist")
         quit()
@@ -26,14 +26,10 @@ def main():
         print(e.__repr__())
         quit()
 
-    try:
-        print("ACCEPTED") if cyk_parser.parse(string) else print("REJECTED")
-    except InvalidSymbolError as e:
-        print(e.__str__())
-        quit()
-    except Exception as e:
-        print(e.__repr__())
-        quit()
+    f = open('output.txt', 'w+')
+    cyk_parser.parse(string, f)
+    f.close()
+
 
 
 if __name__ == '__main__':
